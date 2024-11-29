@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modo Quiosque - Slide</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='Slides.css') }}">
+
+</head>
+<body>
+    <div style="position: absolute; top: 10px; left: 10px;">
+        <button id="back-button" style="opacity: 0.2;;">Voltar</button>
+        <button id="change-params-button" style="opacity: 0.2;;">Alterar Parâmetros</button>
+    </div>
+    <div class="kiosk-container" id="kiosk-container">
+        <!-- Os cartões serão preenchidos pelo JavaScript -->
+    </div>
+    <script>
+        const schedule = JSON.parse('{{ schedule | tojson | safe }}');
+    </script>
+    <script src="{{ url_for('static', filename='Slides.js') }}"></script>
+</body>
+</html>

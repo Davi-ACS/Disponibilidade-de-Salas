@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salas</title>
+    <style>
+        /* Estilo do corpo */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1f1f1f;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Estilo do contêiner da tabela */
+        #schedule-container {
+            width: 90%;
+            max-width: 1200px;
+            overflow-x: auto;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* Barra de filtros */
+        #filters {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            margin-top: 20px;
+        }
+
+        #filters label {
+            display: block;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        #filters input, #filters select, .back-button {
+            padding: 8px;
+            background-color: #333;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        #filters select {
+            min-width: 150px;
+        }
+
+        /* Estilo da tabela */
+        #schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            background-color: #333;
+        }
+
+        #schedule-table th, #schedule-table td {
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        #schedule-table th {
+            background-color: #444;
+            color: #f0f0f0;
+        }
+
+        #schedule-table td {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+        }
+
+
+        .back-button{
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: #444;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover{
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <!-- Titulo e Usuario -->
+
+    <h1>Agendamentos</h1>
+    <h2>Olá, {{ nome }}</h2>
+    <button class="back-button" onclick="window.location.href='/salas/Agendar'">+ Agendar</button>
+
+
+    <!-- Barra de filtros -->
+    <div id="filters">
+        <!--Botão de voltar-->
+        <button class="back-button" onclick="backTolougot()" style="position: absolute; top: 5px; left: 5px;">Sair</button>
+
+        <label for="local-filter">Local:</label>
+        <select id="local-filter" onchange="fillTable()">
+            <option value="">Todos</option>
+            <!-- Opções serão preenchidas pelo JavaScript -->
+        </select>
+
+        <label for="sala-filter">Sala:</label>
+        <select id="sala-filter" onchange="fillTable()">
+            <option value="">Todos</option>
+            <!-- Opções serão preenchidas pelo JavaScript -->
+        </select>
+
+        <label for="resposta-filter">Resposta:</label>
+        <select id="resposta-filter" onchange="fillTable()">
+            <option value="">Todos</option>
+            <!-- Opções serão preenchidas pelo JavaScript --> 
+        </select>
+
+
+
+
+    <div id="schedule-container">
+        <!-- Cabeçalho e corpo da tabela serão preenchidos pelo JavaScript -->
+        <table id="schedule-table">
+            <thead id="schedule-thead"></thead>
+            <tbody id="schedule-tbody"></tbody>
+        </table>
+    </div>
+    <script>
+    // Definindo dados e variáveis de estado
+    const solicitacoes = JSON.parse('{{ solicitacoes | tojson | safe }}');
+        
+
+    // Função para preencher os filtros
+    function fillFilters(){
+        const localFilter = document.getElementById('local-filter');
+        const salaFilter = document.getElementById('sala-filter');
+        const respostaFilter = document.getElementById('resposta-filter');
+
+        // Guardando valores selecionados
+        const selectedLocal = localFilter.value;
+        const selectedSala = salaFilter.value;
+        const selectedResposta = respostaFilter.value;
+
+        // Resetando filtros
+        localFilter.innerHTML = `<option value="">Todos</option>`;
+        salaFilter.innerHTML = `<option value="">Todos</option>`;
+        respostaFilter.innerHTML = `<option value="">Todos</option>`;
+
+        // Preenchendo filtros
+        const locais = [...new Set(solicitacoes.map(solicitacao => solicitacao["Local"]))];
+        locais.forEach(local => {
+            localFilter.innerHTML += `<option value="${local}">${local}</option>`;
+        });
+
+        const salas = [...new Set(solicitacoes.map(solicitacao => solicitacao["Dia"]))];
+        salas.forEach(sala => {
+            salaFilter.innerHTML += `<option value="${sala}">${sala}</option>`;
+        });
+
+        const respostas = [...new Set(solicitacoes.map(solicitacao => solicitacao["Aprovado"]))];
+        respostas.forEach(resposta => {
+            respostaFilter.innerHTML += `<option value="${resposta}">${resposta}</option>`;
+        });
+
+        // Restaurando valores selecionados
+        localFilter.value = selectedLocal;
+        salaFilter.value = selectedSala;
+        respostaFilter.value = selectedResposta;
+    }
+
+    // Função para preencher a tabela
+
+    function fillTable(){
+        const thead = document.getElementById('schedule-thead');
+        const tbody = document.getElementById('schedule-tbody');
+        const localFilter = document.getElementById('local-filter');
+        const salaFilter = document.getElementById('sala-filter');
+        const respostaFilter = document.getElementById('resposta-filter');
+
+        // Preenchendo cabeçalho
+        thead.innerHTML = `
+            <tr>
+                <th>N° Pedido</th>
+                <th>Local</th>
+                <th>Dia</th>
+                <th>Hora</th>
+                <th>Conteúdo</th>
+                <th>Resposta</th>
+            </tr>
+        `;
+
+        // Preenchendo corpo
+        tbody.innerHTML = '';
+        solicitacoes.forEach(solicitacao => {
+            // Verificando filtros
+            if((localFilter.value === '' || solicitacao["Local"] === localFilter.value) &&
+                (salaFilter.value === '' || solicitacao["Dia"] === salaFilter.value) &&
+                (respostaFilter.value === '' || solicitacao["Aprovado"] == respostaFilter.value)){
+                tbody.innerHTML += `
+                    <tr style="border: 2px solid ${solicitacao["Aprovado"] === 'Não Aprovado' ? 'red' : solicitacao["Aprovado"] === 'Aprovado' ? 'green' : 'yellow'};">                        <td>${solicitacao["Id"]}</td>
+                        <td>${solicitacao["Local"]}</td>
+                        <td>${solicitacao["Dia"]}</td>
+                        <td>${solicitacao["Horario"]}</td>
+                        <td>${solicitacao["Conteudo"]}</td>
+                        <td>${solicitacao["Aprovado"]}</td>
+                    </tr>
+                `;
+            }
+        });
+        fillFilters();
+    }
+
+    fillTable();
+
+    function backTolougot() {
+            if (confirm('Deseja realmente sair?'))
+                window.location.href = '/salas/logout';
+        }
+        
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendar Sala</title>
+    <style>
+        /* Estilo base */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1f1f1f;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* Estilo do formulário */
+        .form-container {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        label {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        select {
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #333;
+            color: #e0e0e0;
+        }
+
+        /* Estilo da tabela */
+        #schedule-table {
+            width: 100%;
+            max-width: 1000px;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            background-color: #333;
+            margin: 0 auto;
+        }
+
+        #schedule-table th, #schedule-table td {
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        #schedule-table th {
+            background-color: #444;
+            color: #f0f0f0;
+        }
+
+        #schedule-table td {
+            background-color: #2a2a2a;
+            border: #1a1a1a 2px solid;
+            color: #e0e0e0;
+        }
+
+        /* Células clicáveis com detalhes */
+        .schedule-cell {
+            cursor: pointer;
+            position: relative;
+            padding: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .schedule-cell:hover {
+            background-color: #1a1a1a;
+        }
+
+        .details {
+            display: none;
+            margin-top: 5px;
+            text-align: left;
+            background-color: #333;
+            padding: 5px;
+            border-top: 1px solid #444;
+        }
+
+        .schedule-cell.expand .details {
+            display: block;
+        }
+
+        /* Botões de paginação */
+        .pagination-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            justify-content: center;
+        }
+
+        .pagination-buttons button, .back-button {
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: #444;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .pagination-buttons button:hover, .back-button:hover {
+            background-color: #555;
+        }
+
+        /* Media queries para responsividade */
+        @media (max-width: 768px) {
+            #schedule-table th, #schedule-table td {
+                padding: 5px;
+            }
+
+            .form-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .pagination-buttons {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #schedule-table {
+                font-size: 0.8em;
+            }
+
+            .pagination-buttons button, .back-button {
+                padding: 5px;
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Agendar Sala</h1>
+
+    <!-- Botão de voltar para consulta-->
+    <button class="back-button" onclick="backToConsulta()" >Voltar</button>
+
+    <!-- Formulário de seleção -->
+    <div class="form-container">
+        <div>
+            <label for="bloco">Bloco:</label>
+            <select id="bloco" onchange="reloadPage()">
+                <option value="">Selecione um Bloco</option>
+                <option value="Administrativo">Administrativo</option>
+                <option value="Biblioteca">Biblioteca</option>
+                <option value="Informática">Informática</option>
+                <option value="Multimídia">Multimídia</option>
+            </select>
+        </div>
+        <div>
+            <label for="dia">Dia:</label>
+            <select id="dia" onchange="reloadPage()">
+                <option value="">Selecione um Dia</option>
+                <option value="Segunda">Segunda-Feira</option>
+                <option value="Terça">Terça-Feira</option>
+                <option value="Quarta">Quarta-Feira</option>
+                <option value="Quinta">Quinta-Feira</option>
+                <option value="Sexta">Sexta-Feira</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Botões para navegar entre blocos de horários -->
+    <div class="pagination-buttons">
+        <button onclick="previousHourBlock()">⬅️ Horários anteriores</button>
+        <button onclick="nextHourBlock()">Próximos horários ➡️</button>
+    </div>
+
+    <div id="schedule-container">
+        <!-- Cabeçalho e corpo da tabela serão preenchidos pelo JavaScript -->
+        <table id="schedule-table">
+            <thead id="schedule-thead"></thead>
+            <tbody id="schedule-tbody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // Definindo dados e variáveis de estado
+        const hours = JSON.parse('{{ hours | tojson | safe }}');
+        const rooms = JSON.parse('{{ rooms | tojson | safe }}');
+        const schedule = JSON.parse('{{ schedule | tojson | safe }}');
+
+        let currentHourBlock = 0;
+
+        // Função para atualizar a exibição da tabela
+        function updateSchedule() {
+            // Filtrar as horas visíveis
+            const visible_hours = hours.slice(currentHourBlock * 4, (currentHourBlock + 1) * 4);
+
+            // Cabeçalho da tabela
+            const thead = document.getElementById("schedule-thead");
+            thead.innerHTML = `<tr><th>Sala</th>${visible_hours.map(hour => `<th>${hour}</th>`).join('')}</tr>`;
+
+            // Corpo da tabela
+            const tbody = document.getElementById("schedule-tbody");
+            tbody.innerHTML = rooms.map(room => {
+                return `
+                    <tr>
+                        <td>${room}</td>
+                        ${visible_hours.map(hour => {
+                            const cellData = schedule[room] && schedule[room][hour] ? schedule[room][hour] : {main: "Livre", details: ""};
+                            return `
+                                <td style="background-color: ${cellData.main == 'Livre' ? 'green' : 'red'};">
+                                    <div class="schedule-cell" onclick="showDetails(this)">
+                                        <strong>${cellData.main == "Livre" ? "Livre" : "Ocupado"}</strong>
+                                        ${cellData.main == "Livre" ? `<div class="details"><button class="back-button" onclick="scheduleRoom(this)" >Agendar</button></div>` : ""}
+                                    </div>
+                                </td>
+                            `;
+                        }).join('')}
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function nextHourBlock() {
+            if ((currentHourBlock + 1) * 4 < hours.length) {
+                currentHourBlock++;
+                updateSchedule();
+            }
+        }
+
+        function previousHourBlock() {
+            if (currentHourBlock > 0) {
+                currentHourBlock--;
+                updateSchedule();
+            }
+        }
+
+        function showDetails(cell) {
+            if (cell.querySelector('strong').innerText === "Ocupado") {
+            alert("Esta sala está ocupada.");
+            return;
+            }
+
+            // Fechar qualquer célula aberta
+            const openCell = document.querySelector('.schedule-cell.expand');
+            if (openCell && openCell !== cell) {
+            openCell.classList.remove('expand');
+            openCell.style.backgroundColor = "";
+            }
+
+            // Alternar a célula clicada
+            cell.classList.toggle("expand");
+            if (cell.classList.contains("expand")) {
+            cell.style.backgroundColor = "#1a1a1a";
+            } else {
+            cell.style.backgroundColor = "";
+            }
+        }
+
+        // Função para agendar a sala
+        function scheduleRoom(cell) {
+            const sala = cell.closest('tr').children[0].innerText;
+            const bloco = document.getElementById("bloco").value;
+            const horario = document.getElementById("schedule-thead").querySelectorAll('th')[cell.closest('td').cellIndex].innerText;
+            const inicio = horario.split('-')[0];
+            const fim = horario.split('-')[1];
+            const dia = document.getElementById("dia").value;
+            const feira = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+            const targetWeekday = feira.indexOf(dia);
+            const today = new Date();
+            let daysAhead = targetWeekday - today.getDay();
+            if (daysAhead <= 0) {
+                daysAhead += 7;
+            }
+            const nextDate = new Date(today);
+            nextDate.setDate(today.getDate() + daysAhead);
+            const formattedDate =  nextDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+
+            const motivo = prompt(
+                `Você está prestes a agendar a sala "${sala}" no bloco "${bloco}" para o horário "${horario}" no dia "${formattedDate}".\n\n` +
+                `Por favor, insira o motivo do agendamento. Caso não deseje continuar, deixe o campo em branco e/ou clique em "Cancelar".`
+            );
+            if (motivo) {
+                // Aqui você pode adicionar a lógica para enviar os dados do agendamento para o servidor
+                fetch('/salas/agendar_sala', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sala: sala,
+                        bloco: bloco,
+                        inicio: inicio,
+                        final: fim,
+                        dia: dia,
+                        vencimento: formattedDate,
+                        motivo: motivo
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Sala agendada com sucesso!");
+                        location.reload();
+                    } else {
+                        alert("Erro ao agendar a sala: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert("Erro ao agendar a sala.");
+                });
+
+                console.log(`Agendamento confirmado para a sala ${sala} do bloco ${bloco} para o dia ${formattedDate} no horário ${inicio} - ${fim} com o motivo: ${motivo}`);
+            } else {
+                alert("Agendamento cancelado.");
+            }
+
+        }
+
+        // Função para recarregar a página com os filtros selecionados
+        function reloadPage() {
+            const selectedBloco = document.getElementById('bloco').value;
+            const diafilter = document.getElementById('dia').value;
+            const queryString = `?bloco=${selectedBloco}&dia=${diafilter}`;
+            window.location.href = `/salas/Agendar/${queryString}`;
+        }
+
+        // É chamada quando a página é carregada
+        window.onload = function() {
+            // Inicializar tabela
+            updateSchedule();
+
+            // Get the query parameters from the URL
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Get the values from the query parameters
+            const bloco = urlParams.get('bloco');
+            const dia = urlParams.get('dia');
+
+            // Set the values in the filters
+            if (bloco != null && bloco != "") {
+                if (bloco == "Administrativo" || bloco == "Biblioteca" || bloco == "Informática" || bloco == "Multimídia")
+                    document.getElementById('bloco').value = bloco;
+                else
+                    document.getElementById('bloco').value = "";
+            } else {
+                document.getElementById('bloco').value = "";
+                document.getElementById('schedule-table').innerHTML = "<h1 style='text-align: center;'>Selecione os paramentros para visualizar as salas</h1>";
+            }
+            if (dia != null && dia != "") {
+                if (dia == "Segunda" || dia == "Terça" || dia == "Quarta" || dia == "Quinta" || dia == "Sexta")
+                    document.getElementById('dia').value = dia;
+                else
+                    document.getElementById('dia').value = "";
+            } else {
+                document.getElementById('dia').value = "";
+                document.getElementById('schedule-table').innerHTML = "<h1 style='text-align: center;'>Selecione os paramentros para visualizar as salas</h1>";
+            }
+
+            // Recarrega a cada meia hora
+            setInterval(function() {
+                location.reload();
+            }, 60000);
+        }
+        
+        // Função para voltar para a página de consulta
+        function backToConsulta() {
+            if (confirm('Deseja voltar para a pagina anterior?'))
+                window.location.href = '/salas/Consulta';
+        }
+    
+    </script>
+</body>
+</html>

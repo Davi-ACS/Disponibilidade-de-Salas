@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='schedule.css') }}">
+
+</head>
+<body>
+
+    <!-- Barra de filtros -->
+    <div id="filters">
+        <!--Botão de voltar-->
+        <button class="back-button" onclick="backToHome()" style="position: absolute; top: 5px; left: 5px;">Voltar</button>
+
+        <input type="text" placeholder="Digite a Sala" id="sala-filter" oninput="chargeUrl()" >
+        <select id="bloco-filter" onchange="reloadPage()" >
+            <option value="Administrativo">Administrativo</option>
+            <option value="Biblioteca">Biblioteca</option>
+            <option value="Informática">Informática</option>
+            <option value="Multimídia">Multimídia</option>
+            <!-- Adicionar opções conforme necessário -->
+        </select>
+        <select id="andar-filter" onchange="chargeUrl()">
+            <option value="">Todos</option>
+            <option value="1">1º Andar</option>
+            <option value="2">2º Andar</option>
+            <option value="3">3º Andar</option>
+        </select>
+        <select id="dia-filter" onchange="reloadPage()">
+            <option value="Segunda">Segunda-Feira</option>
+            <option value="Terça">Terça-Feira</option>
+            <option value="Quarta">Quarta-Feira</option>
+            <option value="Quinta">Quinta-Feira</option>
+            <option value="Sexta">Sexta-Feira</option>
+        </select>
+    </div>
+
+    <div id="schedule-container">
+        <!-- Cabeçalho e corpo da tabela serão preenchidos pelo JavaScript -->
+        <table id="schedule-table">
+            <thead id="schedule-thead"></thead>
+            <tbody id="schedule-tbody"></tbody>
+        </table>
+
+        <!-- Botões para navegar entre blocos de horários -->
+        <div class="pagination-buttons">
+            <button onclick="previousHourBlock()">⬅️ Horários anteriores</button>
+            <button onclick="nextHourBlock()">➡️ Próximos horários</button>
+        </div>
+    </div>
+
+    <script>
+        // Definindo dados e variáveis de estado
+        const hours = JSON.parse('{{ hours | tojson | safe }}');
+        const rooms = JSON.parse('{{ rooms | tojson | safe }}');
+        const schedule = JSON.parse('{{ schedule | tojson | safe }}');
+    </script>
+    <script src="{{ url_for('static', filename='schedule.js') }}"></script>
+
+</body>
+</html>

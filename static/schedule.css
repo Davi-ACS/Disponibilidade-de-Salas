@@ -1,0 +1,108 @@
+ /* Estilo do corpo */
+ body {
+    font-family: Arial, sans-serif;
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* Estilo do contêiner da tabela */
+#schedule-container {
+    width: 90%;
+    max-width: 1200px;
+    overflow-x: auto;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Barra de filtros */
+#filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+#filters input, #filters select, .back-button {
+    padding: 8px;
+    background-color: #333;
+    color: #e0e0e0;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+
+/* Estilo da tabela */
+#schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+    background-color: #333;
+}
+
+#schedule-table th, #schedule-table td {
+    border: 1px solid #444;
+    padding: 10px;
+    text-align: center;
+    vertical-align: top;
+}
+
+#schedule-table th {
+    background-color: #444;
+    color: #f0f0f0;
+}
+
+#schedule-table td {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+}
+
+/* Células clicáveis com detalhes */
+.schedule-cell {
+    cursor: pointer;
+    position: relative;
+    padding: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.schedule-cell:hover {
+    background-color: #3c3c3c;
+}
+
+.details {
+    display: none;
+    margin-top: 5px;
+    text-align: left;
+    background-color: #333;
+    padding: 5px;
+    border-top: 1px solid #444;
+}
+
+.schedule-cell.expand .details {
+    display: block;
+}
+
+/* Botões de paginação */
+.pagination-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.pagination-buttons button, .back-button{
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: #444;
+    color: #e0e0e0;
+    border: 1px solid #555;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.pagination-buttons button:hover , .back-button:hover{
+    background-color: #555;
+}

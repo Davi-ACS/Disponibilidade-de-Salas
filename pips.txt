@@ -1,0 +1,13 @@
+pip install Authlib
+pip install Flask
+pip install Flask.SQLAlchemy
+pip install pytz
+pip install requests 
+pip install windows-curses
+pip install arrow
+pip install pandas
+pip install python-dotenv
+pip install openpyxl
+
+pip freeze > installed_packages.txt
+pip uninstall -r installed_packages.txt -y  
