@@ -384,3 +384,6 @@ def create_tables():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+# Adicionando uma linha de comnetário porque usamos a extensão liveshare para fazer o jogo ¬¬
