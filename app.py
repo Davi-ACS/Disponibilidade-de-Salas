@@ -19,26 +19,54 @@ app.wsgi_app = ProxyFix(
 oauth = OAuth(app)
 db = SQLAlchemy(app)
 
-class Aula(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    Bloco = db.Column(db.String(50))
-    Sala = db.Column(db.String(50))
-    inicio = db.Column(db.String(10))
-    fim = db.Column(db.String(10))
-    Conteudo = db.Column(db.String(200))
-    Responsavel = db.Column(db.String(100))
-    Dia = db.Column(db.String(50))
-    Vencimento = db.Column(db.String(10), nullable=True)
+# Classe que define o modelo "Aula" para o banco de dados usando SQLAlchemy
+class Aula(db.Model):  
+    # Atributo 'id': chave primária da tabela, autoincrementada
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)  
+    
+    # Atributo 'Bloco': representa o bloco onde a aula ocorre (máximo de 50 caracteres)
+    Bloco = db.Column(db.String(50))  
+    
+    # Atributo 'Sala': identifica a sala da aula (máximo de 50 caracteres)
+    Sala = db.Column(db.String(50))  
+    
+    # Atributo 'inicio': horário de início da aula (armazenado como string com até 10 caracteres, e.g., "08:00")
+    inicio = db.Column(db.String(10))  
+    
+    # Atributo 'fim': horário de término da aula (armazenado como string com até 10 caracteres, e.g., "10:00")
+    fim = db.Column(db.String(10))  
+    
+    # Atributo 'Conteudo': descrição do conteúdo abordado na aula (máximo de 200 caracteres)
+    Conteudo = db.Column(db.String(200))  
+    
+    # Atributo 'Responsavel': nome da pessoa responsável pela aula (máximo de 100 caracteres)
+    Responsavel = db.Column(db.String(100))  
+    
+    # Atributo 'Dia': indica o dia da semana ou data específica da aula (máximo de 50 caracteres)
+    Dia = db.Column(db.String(50))  
+    
+    # Atributo 'Vencimento': data de vencimento de algum prazo relacionado à aula (opcional, permite valores nulos)
+    Vencimento = db.Column(db.String(10), nullable=True)  
 
-    def __init__(self, Bloco, Sala, inicio, fim, Conteudo, Responsavel , Dia, Vencimento=None):
-        self.Bloco = Bloco
-        self.Sala = Sala
-        self.inicio = inicio
-        self.fim = fim
-        self.Conteudo = Conteudo
-        self.Responsavel = Responsavel
-        self.Dia = Dia
-        self.Vencimento = Vencimento
+    # Construtor da classe que inicializa os atributos da aula
+    def __init__(self, Bloco, Sala, inicio, fim, Conteudo, Responsavel, Dia, Vencimento=None):
+        # Inicializa o bloco da aula
+        self.Bloco = Bloco  
+        # Inicializa a sala onde a aula será realizada
+        self.Sala = Sala  
+        # Define o horário de início da aula
+        self.inicio = inicio  
+        # Define o horário de término da aula
+        self.fim = fim  
+        # Define o conteúdo da aula
+        self.Conteudo = Conteudo  
+        # Define o responsável pela aula
+        self.Responsavel = Responsavel  
+        # Define o dia da aula
+        self.Dia = Dia  
+        # Define a data de vencimento (se fornecida)
+        self.Vencimento = Vencimento  
+
 
 class Solititacao(db.Model):
     numero_pedido = db.Column(db.Integer, primary_key=True, autoincrement=True)
