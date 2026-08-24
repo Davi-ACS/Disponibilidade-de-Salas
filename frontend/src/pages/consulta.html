@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meus Agendamentos — UFRRJ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css"/>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="../../index.html"><span class="brand-mark">◆</span><span class="brand-text"><strong>Salas</strong> UFRRJ</span></a>
+      <div class="nav-links"><a href="./schedule.html">Grade</a><a href="./agendar.html">Agendar</a><a href="./consulta.html" style="color:var(--text);background:rgba(255,255,255,.08)">Meus Agendamentos</a></div>
+      <div class="nav-actions"><a class="btn btn-primary" href="./agendar.html">+ Novo agendamento</a><a class="btn btn-ghost" href="../../index.html">Sair</a></div>
+    </div>
+  </nav>
+  <main class="page">
+    <div class="page-head">
+      <div><h1>Olá, Maria 👋</h1><p>maria.silva@ufrrj.br • Seus pedidos e status em tempo real.</p></div>
+      <a class="btn btn-secondary" href="./agendar.html">+ Agendar sala</a>
+    </div>
+    <div class="filters">
+      <label>Local<select id="local"><option value="">Todos</option></select></label>
+      <label>Dia<select id="diaF"><option value="">Todos</option><option>Segunda</option><option>Terça</option><option>Quarta</option><option>Quinta</option><option>Sexta</option></select></label>
+      <label>Resposta<select id="resp"><option value="">Todos</option><option>Em análise</option><option>Aprovado</option><option>Não Aprovado</option></select></label>
+    </div>
+    <div class="cards" id="cards"></div>
+  </main>
+<script>
+const mock = [
+  {Id: 12, Local:"101-Administrativo", Dia:"Segunda", Horario:"10:00-11:00", Conteudo:"Reunião de extensão", Aprovado:"Aprovado"},
+  {Id: 13, Local:"Lab Info 1-Informática", Dia:"Quarta", Horario:"14:00-16:00", Conteudo:"Aula prática BD", Aprovado:"Em análise"},
+  {Id: 14, Local:"203-Administrativo", Dia:"Sexta", Horario:"19:00-20:00", Conteudo:"Monitoria", Aprovado:"Não Aprovado"},
+  {Id: 15, Local:"Auditório-Multimídia", Dia:"Quinta", Horario:"08:00-12:00", Conteudo:"Palestra", Aprovado:"Em análise"},
+];
+const cards=document.getElementById('cards'), localEl=document.getElementById('local'), diaEl=document.getElementById('diaF'), respEl=document.getElementById('resp');
+function fillFilters(){
+  const selLocal=localEl.value, selDia=diaEl.value, selResp=respEl.value;
+  localEl.innerHTML='<option value="">Todos</option>'; [...new Set(mock.map(m=>m.Local))].forEach(v=> localEl.innerHTML+=`<option>${v}</option>`);
+  respEl.innerHTML='<option value="">Todos</option>'; [...new Set(mock.map(m=>m.Aprovado))].forEach(v=> respEl.innerHTML+=`<option>${v}</option>`);
+  localEl.value=selLocal; diaEl.value=selDia; respEl.value=selResp;
+}
+function render(){
+  fillFilters();
+  const fLocal=localEl.value, fDia=diaEl.value, fResp=respEl.value;
+  const filtered=mock.filter(m=>(!fLocal||m.Local===fLocal)&&(!fDia||m.Dia===fDia)&&(!fResp||m.Aprovado===fResp));
+  if(filtered.length===0){ cards.innerHTML='<p style="text-align:center;color:var(--muted);padding:24px">Nenhuma solicitação encontrada.</p>'; return; }
+  cards.innerHTML = filtered.map(m=>{
+    const cls = m.Aprovado==='Aprovado'?'aprovado': m.Aprovado==='Não Aprovado'?'rejeitado':'analise';
+    return `<div class="card ${cls}">
+      <div><h4>#${m.Id} • ${m.Local} • ${m.Horario}</h4><p>${m.Dia} • ${m.Conteudo}</p></div>
+      <span class="badge ${cls}">${m.Aprovado}</span>
+    </div>`;
+  }).join('');
+}
+localEl.onchange=render; diaEl.onchange=render; respEl.onchange=render;
+render();
+</script>
+</body>
+</html>

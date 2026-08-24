@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agendar Sala — UFRRJ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css"/>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="../../index.html"><span class="brand-mark">◆</span><span class="brand-text"><strong>Salas</strong> UFRRJ</span></a>
+      <div class="nav-links"><a href="./schedule.html">Grade</a><a href="./agendar.html" style="color:var(--text);background:rgba(255,255,255,.08)">Agendar</a><a href="./consulta.html">Meus Agendamentos</a></div>
+      <div class="nav-actions"><a class="btn btn-ghost" href="./consulta.html">Voltar</a></div>
+    </div>
+  </nav>
+  <main class="page">
+    <div class="page-head">
+      <div><h1>Agendar Sala</h1><p>Requer login <code>@ufrrj.br</code>. Escolha o bloco e o dia para liberar a grade.</p></div>
+      <span class="badge analise">🔒 Autenticado via Google OAuth</span>
+    </div>
+
+    <div class="filters">
+      <label>Bloco<select id="bloco"><option value="">Selecione</option><option>Administrativo</option><option>Biblioteca</option><option>Informática</option><option>Multimídia</option></select></label>
+      <label>Dia<select id="dia"><option value="">Selecione</option><option>Segunda</option><option>Terça</option><option>Quarta</option><option>Quinta</option><option>Sexta</option></select></label>
+      <span style="align-self:end;color:var(--muted);font-size:.85rem">Dica: clique em <b style="color:var(--green)">Livre</b> para abrir o agendamento.</span>
+    </div>
+
+    <div class="table-wrap" id="wrap" style="margin-top:16px">
+      <div class="table-head"><strong id="title">Selecione bloco e dia</strong><div class="pagination"><button id="prev">← Anterior</button><button id="next">Próximo →</button></div></div>
+      <div style="overflow:auto"><table class="schedule-table" id="table"></table></div>
+    </div>
+    <p style="text-align:center;color:var(--muted);margin-top:12px;font-size:.85rem">Aprovação em até 24h • Você receberá atualização em “Meus Agendamentos”.</p>
+  </main>
+<script>
+const hours=["08:00-09:00","09:00-10:00","10:00-11:00","11:00-12:00","13:00-14:00","14:00-15:00","15:00-16:00","16:00-17:00","17:00-18:00","18:00-19:00","19:00-20:00","20:00-21:00","21:00-22:00"];
+const rooms=["101","102","103","203","Lab Info 1","Lab Info 2"];
+function hash(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h}
+function build(bloco,dia){const s={};rooms.forEach(r=>{s[r]={};hours.forEach(h=>{s[r][h]=(hash(bloco+dia+r+h)%3===0)?{main:"Ocupado"}:{main:"Livre"}})});return s}
+let schedule={}, currentBlock=0;
+const bloco=document.getElementById('bloco'), dia=document.getElementById('dia'), title=document.getElementById('title'), table=document.getElementById('table');
+function render(){
+  if(!bloco.value||!dia.value){ table.innerHTML='<tr><td style="padding:28px;color:var(--muted);text-align:center">Selecione bloco e dia para visualizar as salas.</td></tr>'; title.textContent='Selecione bloco e dia'; return; }
+  schedule=build(bloco.value,dia.value);
+  title.textContent=`${bloco.value} • ${dia.value}`;
+  const visible = hours.slice(currentBlock*4, currentBlock*4+4);
+  let h='<thead><tr><th style="text-align:left;padding-left:16px">Sala</th>'+visible.map(x=>`<th>${x}</th>`).join('')+'</tr></thead>';
+  let b='<tbody>'+rooms.map(r=>'<tr><td style="font-family:JetBrains Mono,monospace;font-weight:600;text-align:left;padding-left:16px">'+r+'</td>'+visible.map(hh=>{
+    const livre=schedule[r][hh].main==='Livre';
+    return `<td><div class="cell ${livre?'livre':'ocupado'}" onclick="toggle(this, '${r}','${hh}')">${livre?'Livre':'Ocupado'}<div class="details">${livre?`<button class="btn btn-primary" style="padding:6px 10px;font-size:.8rem" onclick="event.stopPropagation(); doAgendar('${r}','${hh}')">Agendar</button>`:'Ocupado'}</div></div></td>`
+  }).join('')+'</tr>').join('')+'</tbody>';
+  table.innerHTML=h+b;
+}
+window.toggle=(el)=>{ if(el.classList.contains('ocupado')){alert('Ocupado');return;} document.querySelectorAll('.cell.expand').forEach(c=>{if(c!==el)c.classList.remove('expand')}); el.classList.toggle('expand') }
+window.doAgendar=(sala, hora)=>{
+  const inicio=hora.split('-')[0], fim=hora.split('-')[1];
+  const feira=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+  const target=feira.indexOf(dia.value); const today=new Date(); let d=target - today.getDay(); if(d<=0)d+=7; const nd=new Date(today); nd.setDate(today.getDate()+d);
+  const venc=nd.toLocaleDateString('pt-BR');
+  const motivo=prompt(`Agendar ${sala} (${bloco.value}) em ${hora} — ${venc}\nInforme o motivo:`);
+  if(!motivo) return alert('Cancelado.');
+  // POST /api/v1/agendar {sala, bloco, inicio, fim, dia, vencimento, motivo}
+  alert('✓ Solicitação enviada! Status: Em análise.');
+  location.href='./consulta.html';
+}
+document.getElementById('prev').onclick=()=>{if(currentBlock>0){currentBlock--;render()}};
+document.getElementById('next').onclick=()=>{if((currentBlock+1)*4<hours.length){currentBlock++;render()}};
+bloco.onchange=()=>{currentBlock=0;render()}; dia.onchange=()=>{currentBlock=0;render()};
+const qp=new URLSearchParams(location.search); if(qp.get('bloco')) bloco.value=qp.get('bloco'); if(qp.get('dia')) dia.value=qp.get('dia');
+render();
+</script>
+</body>
+</html>

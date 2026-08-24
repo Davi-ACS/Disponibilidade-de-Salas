@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Solicitações</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css"/>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="../../index.html"><span class="brand-mark">◆</span><span class="brand-text"><strong>Admin</strong> UFRRJ</span></a>
+      <div class="nav-links"><span style="color:var(--muted)">Painel administrativo</span></div>
+      <div class="nav-actions"><span style="color:var(--muted);font-size:.85rem">Olá, Admin</span><a class="btn btn-ghost" href="../../index.html">Sair</a></div>
+    </div>
+  </nav>
+  <main class="page">
+    <div class="page-head"><div><h1>Solicitações</h1><p>Aprove ou rejeite pedidos. Ao aprovar, os demais no mesmo horário são marcados como não aprovados.</p></div></div>
+    <div class="table-wrap">
+      <div style="overflow:auto">
+        <table class="schedule-table" id="adminTable">
+          <thead><tr><th>#</th><th>Solicitante</th><th>Local</th><th>Dia</th><th>Horário</th><th>Vencimento</th><th>Conteúdo</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+<script>
+const data=[
+  {numero:12, email:"maria@ufrrj.br", responsavel:"Maria", Bloco:"Administrativo", Sala:"101", inicio:"10:00", fim:"11:00", Dia:"Segunda", vencimento:"28/08/2026", conteudo:"Reunião", aprovado:"Em análise"},
+  {numero:13, email:"joao@ufrrj.br", responsavel:"João", Bloco:"Informática", Sala:"Lab Info 1", inicio:"14:00", fim:"15:00", Dia:"Quarta", vencimento:"29/08/2026", conteudo:"Aula BD", aprovado:"Em análise"},
+];
+const tbody=document.getElementById('tbody');
+function render(){
+  tbody.innerHTML=data.map(d=>`
+    <tr>
+      <td style="font-family:JetBrains Mono,monospace">#${d.numero}</td>
+      <td>${d.responsavel}<br><small style="color:var(--muted)">${d.email}</small></td>
+      <td>${d.Sala}-${d.Bloco}</td>
+      <td>${d.Dia}</td>
+      <td>${d.inicio}-${d.fim}</td>
+      <td>${d.vencimento}</td>
+      <td>${d.conteudo}</td>
+      <td><span class="badge ${d.aprovado==='Aprovado'?'aprovado':d.aprovado==='Não Aprovado'?'rejeitado':'analise'}">${d.aprovado}</span></td>
+      <td style="display:flex;gap:6px;justify-content:center">
+        <button class="btn btn-primary" style="padding:6px 10px" onclick="aprovar(${d.numero})">Aprovar</button>
+        <button class="btn btn-ghost" style="padding:6px 10px" onclick="rejeitar(${d.numero})">Rejeitar</button>
+      </td>
+    </tr>`).join('');
+}
+window.aprovar=(n)=>{ const r=data.find(x=>x.numero===n); if(r){ r.aprovado='Aprovado'; render(); alert('Aprovado!'); /* POST /api/v1/admin/aprovar {numero_pedido} */ } }
+window.rejeitar=(n)=>{ const r=data.find(x=>x.numero===n); if(r){ r.aprovado='Não Aprovado'; render(); alert('Rejeitado.'); }}
+render();
+</script>
+</body>
+</html>
