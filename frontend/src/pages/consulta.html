@@ -3,20 +3,22 @@
 <head>
   <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Meus Agendamentos — UFRRJ</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles/main.css"/>
 </head>
 <body>
   <nav class="nav">
     <div class="nav-inner">
-      <a class="brand" href="../../index.html"><span class="brand-mark">◆</span><span class="brand-text"><strong>Salas</strong> UFRRJ</span></a>
-      <div class="nav-links"><a href="./schedule.html">Grade</a><a href="./agendar.html">Agendar</a><a href="./consulta.html" style="color:var(--text);background:rgba(255,255,255,.08)">Meus Agendamentos</a></div>
+      <a class="brand" href="../../index.html"><span class="brand-mark">S</span><span class="brand-text"><strong>Salas</strong> UFRRJ</span><span class="brand-badge">Consulta</span></a>
+      <div class="nav-links"><a href="./schedule.html">Grade</a><a href="./agendar.html">Agendar</a><a href="./consulta.html" class="active">Meus Agendamentos</a></div>
       <div class="nav-actions"><a class="btn btn-primary" href="./agendar.html">+ Novo agendamento</a><a class="btn btn-ghost" href="../../index.html">Sair</a></div>
+      <button class="hamburger" id="hamburger">☰</button>
     </div>
+    <div class="mobile-menu" id="mobileMenu"><a href="./schedule.html">Grade</a><a href="./agendar.html">Agendar</a></div>
   </nav>
   <main class="page">
     <div class="page-head">
-      <div><h1>Olá, Maria 👋</h1><p>maria.silva@ufrrj.br • Seus pedidos e status em tempo real.</p></div>
+      <div><h1>Olá, Maria</h1><p>maria.silva@ufrrj.br · Seus pedidos e status em tempo real. Filtre por local, dia ou resposta.</p></div>
       <a class="btn btn-secondary" href="./agendar.html">+ Agendar sala</a>
     </div>
     <div class="filters">
@@ -25,7 +27,10 @@
       <label>Resposta<select id="resp"><option value="">Todos</option><option>Em análise</option><option>Aprovado</option><option>Não Aprovado</option></select></label>
     </div>
     <div class="cards" id="cards"></div>
+    <p style="margin-top:12px; font-family:JetBrains Mono, monospace; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); border-left:2px solid var(--ink); padding-left:10px">Legenda: <span style="color:var(--success)">■ Aprovado</span> · <span style="color:var(--warn)">■ Em análise</span> · <span style="color:var(--danger)">■ Não aprovado</span></p>
   </main>
+  <footer class="footer"><div class="footer-inner"><span>UFRRJ · Meus Agendamentos</span></div></footer>
+<script src="../js/app.js"></script>
 <script>
 const mock = [
   {Id: 12, Local:"101-Administrativo", Dia:"Segunda", Horario:"10:00-11:00", Conteudo:"Reunião de extensão", Aprovado:"Aprovado"},
@@ -44,11 +49,11 @@ function render(){
   fillFilters();
   const fLocal=localEl.value, fDia=diaEl.value, fResp=respEl.value;
   const filtered=mock.filter(m=>(!fLocal||m.Local===fLocal)&&(!fDia||m.Dia===fDia)&&(!fResp||m.Aprovado===fResp));
-  if(filtered.length===0){ cards.innerHTML='<p style="text-align:center;color:var(--muted);padding:24px">Nenhuma solicitação encontrada.</p>'; return; }
+  if(filtered.length===0){ cards.innerHTML='<p style="text-align:center;color:var(--muted);padding:24px;font-family:JetBrains Mono,monospace; font-size:.72rem; letter-spacing:.06em; text-transform:uppercase">Nenhuma solicitação encontrada.</p>'; return; }
   cards.innerHTML = filtered.map(m=>{
     const cls = m.Aprovado==='Aprovado'?'aprovado': m.Aprovado==='Não Aprovado'?'rejeitado':'analise';
     return `<div class="card ${cls}">
-      <div><h4>#${m.Id} • ${m.Local} • ${m.Horario}</h4><p>${m.Dia} • ${m.Conteudo}</p></div>
+      <div><h4>#${String(m.Id).padStart(3,'0')} · ${m.Local} · ${m.Horario}</h4><p>${m.Dia} · ${m.Conteudo}</p></div>
       <span class="badge ${cls}">${m.Aprovado}</span>
     </div>`;
   }).join('');
